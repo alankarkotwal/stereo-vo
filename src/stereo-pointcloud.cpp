@@ -10,6 +10,11 @@
 #include <pcl/point_cloud.h>
 #include <pcl/io/pcd_io.h>
 
+#define SPARSE
+#ifdef SPARSE
+#define SP_FACTOR 5
+#endif
+
 using namespace std;
 using namespace cv;
 using namespace pcl;
@@ -70,8 +75,14 @@ int main(int argc, char *argv[]) {
 		sgbm(grayLeft, grayRight, disparities);
 		reprojectImageTo3D(disparities, reprojections, Q, true, -1);
 		
+		#ifdef SPARSE
+		for (int k=0; k < left_images[i].rows; k=k+SP_FACTOR) {
+			for (int j=0; j < left_images[i].cols; j=j+SP_FACTOR) {
+		#else
 		for (int k=0; k < left_images[i].rows; k++) {
 			for (int j=0; j < left_images[i].cols; j++) {
+		#endif
+
 				PointXYZRGB p;
 				p.z = reprojections.at<Vec3f>(k, j)[2];
 				if(p.z < 400 && p.z > 0) {
@@ -87,7 +98,11 @@ int main(int argc, char *argv[]) {
 		}
 		
 		stringstream filename;
-		filename << "../pointclouds/pair0" <<i<< ".pcd";
+		#ifdef SPARSE
+		filename << "../pointclouds/sparse/pair0" <<i<< ".pcd";
+		#else
+		filename << "../pointclouds/dense/pair0" <<i<< ".pcd";
+		#endif
 		w.writeASCII(filename.str(), pc);
 	}
 	
