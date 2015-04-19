@@ -17,9 +17,11 @@ add_definitions(${PCL_DEFINITIONS} )
 
 add_executable (stereo-pointcloud stereo-pointcloud.cpp)
 add_executable (pointset-matching pointset-matching.cpp)
+add_executable (pointset-matching-cpd pointset-matching-cpd.cpp)
 add_executable (pointcloud-stitching pointcloud-stitching.cpp)
 target_link_libraries (stereo-pointcloud ${PCL_LIBRARIES} ${OpenCV_LIBS})
 target_link_libraries (pointset-matching ${PCL_LIBRARIES} ${OpenCV_LIBS})
+target_link_libraries (pointset-matching-cpd ${PCL_LIBRARIES} ${OpenCV_LIBS})
 target_link_libraries (pointcloud-stitching ${PCL_LIBRARIES} ${OpenCV_LIBS})
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")

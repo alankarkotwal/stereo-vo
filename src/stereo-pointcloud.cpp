@@ -12,7 +12,7 @@
 
 #define SPARSE
 #ifdef SPARSE
-#define SP_FACTOR 5
+#define SP_FACTOR 15
 #endif
 
 using namespace std;

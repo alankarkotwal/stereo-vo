@@ -13,8 +13,8 @@ using namespace cv;
 
 int main(int argc, char *argv[]) {
 
-	if (argc < 4) {
-		cerr << "Usage: " << argv[0] << " JSON_DATA_FILE JSON_LEFT_CALIB_FILE JSON_RIGHT_CALIB_FILE\n";
+	if (argc < 3) {
+		cerr << "Usage: " << argv[0] << " POINTCLOUD_LIST TRANSFORM_LIST\n";
 		return -1;
 	}
 	
