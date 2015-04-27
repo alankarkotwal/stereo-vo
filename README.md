@@ -12,7 +12,7 @@ We use a Gaussian Mixture Model to model each pointset and then use a measure of
 Requirements
 ------------
 The best way to run the code is to use a system running a Linux distribution (who uses Windows anyway?). The code was written and tested on Ubuntu 14.04 LTS. Anyhoo, you need the following things:
-+ A C++ (**not** C) compiler that supports C++11.
++ A C++ compiler that supports C++11.
 + The OpenCV Library ([here](http://opencv.org/))
 + The Point Cloud Library ([here](http://pointclouds.org/))
 + The Eigen Template Library ([here](http://eigen.tuxfamily.org/))
