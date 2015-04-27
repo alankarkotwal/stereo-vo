@@ -22,8 +22,6 @@ using namespace std;
 using namespace pcl;
 using namespace Eigen;
 
-float GaussKernel(Vector3f, float);
-
 int main(int argc, char *argv[]) {
 
 	if (argc < 5) {
