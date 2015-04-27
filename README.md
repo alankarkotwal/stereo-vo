@@ -29,7 +29,18 @@ This will print out a shitload of stuff. Hopefully if everything's right, it'll 
 `make`  
 to compile the code. You can run the code after it is compiled successfully. Now:
 
-+ **Images -> Pointclouds**: 
-+ **Registering Pointclouds**: 
-+ **Aligning Pointclouds**:
++ **Images -> Pointclouds**: Typically you'd be converting a set of images (left and right) to pointclouds. The syntax is  
+`./stereo-pointcloud <images.list> <Q.mat>`  
+where *images.list* is a file that contains names of the images in the *images/* folder. The actual name is *images/<entry in images.list>_<left/right>.jpg*.  
+Q.mat is a text file that contains the vectorised stereo reprojection matrix for the stereo pair.
++ **Registering Pointclouds**: This is typically the second step.  
+`./pointset-matching <pointcloud_static> <pointcloud_moving> <rfile> <tfile>`  
+where the first two arguments are obvious, *rfile* is the name of the file to be used to store the vectorised rotation matrix, and *tfile* is the name of the file to be used to store the translation vector.
 
++ **Aligning Pointclouds**: Do this once you have the transformations obtained from step 2.  
+`./pointcloud-stitching args`  
+Describe arguments to pointcloud-stitching here.
+
+Contact
+-------
+Me (Alankar Kotwal, <alankarkotwal13@gmail.com>).
