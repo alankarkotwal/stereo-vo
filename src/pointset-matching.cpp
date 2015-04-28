@@ -14,8 +14,8 @@
 #include <string>	
 
 #define PI 3.14159265
-#define GAUSS_VAR 100
-#define MAX_ITER 3
+#define GAUSS_VAR 1
+#define MAX_ITER 5
 #define MAX_OBJ_FN 1
 
 using namespace std;
@@ -51,6 +51,7 @@ int main(int argc, char *argv[]) {
 	Vector3f trans(0, 0, 0);
 	
 	float objFn = 1000000000000;
+	float oldObjFn = 1000000000000;
 	MatrixXf G = MatrixXf::Zero(M, 3); // Initialise zeros
 	
 	VectorXf OneM(M);
@@ -62,7 +63,7 @@ int main(int argc, char *argv[]) {
 	float stepSize = 0.01;
 	int iter = 0;
 	
-	while(iter < MAX_ITER && objFn > MAX_OBJ_FN) { // Termination criterion
+	while(iter < MAX_ITER/* && objFn > MAX_OBJ_FN*/) { // Termination criterion
 	
 		// Calculate the G matrix and evaluate the objective function
 		objFn = 0;
@@ -124,6 +125,14 @@ int main(int argc, char *argv[]) {
 		rot = rot/(sqrt(pow(rot(0), 2) + pow(rot(1), 2) + pow(rot(2), 2) + pow(rot(3), 2)));
 		
 		iter = iter + 1;
+		
+		/*if(objFn < oldObjFn) {
+			stepSize = 1.1*stepSize;
+		}
+		else {
+			stepSize = 0.5*stepSize;
+		}
+		oldObjFn = objFn;*/
 	
 	}
 	

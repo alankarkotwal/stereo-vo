@@ -29,12 +29,85 @@ Odometry refers to the use of data from motion sensors to estimate change in pos
 \newpage
 
 \section{Method}
-We closely follow the method outlined in \cite{main}. The method involves modelling both the reference and the moving pointclouds as Mixture Models. We choose spherical Gaussian Mixtures and equal weights per-point for simplicity and easy updates. Our model for the pointclouds, thus, is given by $$\mathcal{S}(\textbf{x}) = \sum_{i=1}^N \mathcal{G}(\textbf{x}; \textbf{s}_i, \Sigma), \mathcal{M}(\textbf{x}) = \sum_{i=1}^M \mathcal{G}(\textbf{x}; \textbf{m}_i, \Sigma)$$ where $N = |\mathcal{S}|, M = |\mathcal{M}|, \Sigma = diag(\sigma^2)$. We then maximise the kernel correlation between a translated and rotated version of the moving pointcloud and the reference pointcloud, with respect to the rotation and the translation, yielding the optimization problem $$\min_{\textbf{R}, \textbf{t}} \sum_{i=1}^M \sum_{j=1}^N e^{-\frac{|| \textbf{d}_{ij} ||}{2 \sigma^2}}$$ such that $\textbf{d}_{ij} = \textbf{Rx}_i + \textbf{t} - \textbf{y}_j$ and $\textbf{R}^T \textbf{R} = I$. This is a convex program and the optimization is carried out using Gradient Descent on the components of $\textbf{t}$ and a parametrization of the rotation matrix $\textbf{R}$, as described in the implementation section below.
+We closely follow the method outlined in \cite{main}. The method involves modelling both the reference and the moving pointclouds as Mixture Models. We choose spherical Gaussian Mixtures and equal weights per-point for simplicity and easy updates. Our model for the pointclouds, thus, is given by $$\mathcal{S}(\textbf{x}) = \sum_{i=1}^N \mathcal{G}(\textbf{x}; \textbf{s}_i, \Sigma), \mathcal{M}(\textbf{x}) = \sum_{i=1}^M \mathcal{G}(\textbf{x}; \textbf{m}_i, \Sigma)$$ where $N = |\mathcal{S}|, M = |\mathcal{M}|, \Sigma = diag(\sigma^2)$. We then maximise the kernel correlation between a translated and rotated version of the moving pointcloud and the reference pointcloud, with respect to the rotation and the translation, yielding the optimization problem $$\textbf{R}, \textbf{t} = arg\min_{\textbf{R}, \textbf{t}} \sum_{i=1}^M \sum_{j=1}^N e^{-\frac{|| \textbf{Rx}_i + \textbf{t} - \textbf{y}_j ||}{2 \sigma^2}}$$ such that $\textbf{R}^T \textbf{R} = I$. This is a convex program and the optimization is carried out using Gradient Descent on the components of $\textbf{t}$ and a parametrization of the rotation matrix $\textbf{R}$, as described in the implementation section below.
 
 \section{Implementation}
+We chose to code the method in C++ using PCL to handle pointcloud representation and i/o, and Eigen to handle the matrix algebra. With this, we chose to represent rotations using unit quaternions to make gradient-descent optimization convenient and avoid the orthogonality constraint on \textbf{R}.
+\linebreak \linebreak
+\noindent Gradient descent requires us to calculate the gradient of the objective function with respect to the optimizing variables. With the help of \cite{mainPre}, we get, with $F(\mathcal{S}, \mathcal{M}, \textbf{R}, \textbf{t})$ being the objective function defined above, $$\frac{\partial F}{\partial \textbf{t}} = \textbf{G}^T\textbf{1}_m$$ $$\frac{\partial F}{\partial r_i} = \textbf{1}_d^T \left(\textbf{G}^T\textbf{M}_0 \otimes \frac{\partial \textbf{R}}{\partial r_i}\right)\textbf{1}_d$$ where $(r_0, r_1, r_2, r_3)$ is the unit-quaternion representation of the rotation matrix.
+\linebreak \linebreak
+\noindent
+The derivatives of $\textbf{R}$ with respect to $r_i$ are calculated, from \cite{quatParam} as
+$$\frac{\partial \textbf{R}}{\partial r_0} = 2\begin{pmatrix}
+  r_0 & -r_3 & r_2 \\
+  r_3 & r_0 & -r_1 \\
+  -r_2 & r_1 & r_0
+ \end{pmatrix}$$
+$$\frac{\partial \textbf{R}}{\partial r_1} = 2\begin{pmatrix}
+  r_1 & r_2 & r_3 \\
+  r_2 & -r_1 & -r_0 \\
+  r_3 & r_0 & -r_1
+ \end{pmatrix}$$
+$$\frac{\partial \textbf{R}}{\partial r_2} = 2\begin{pmatrix}
+  -r_2 & r_1 & r_0 \\
+  r_1 & r_2 & r_3 \\
+  -r_0 & r_3 & -r_2
+ \end{pmatrix}$$
+$$\frac{\partial \textbf{R}}{\partial r_3} = 2\begin{pmatrix}
+  -r_3 & -r_0 & r_1 \\
+  r_0 & -r_3 & r_2 \\
+  r_1 & r_2 & r_3
+ \end{pmatrix}$$
+
+
+\noindent Apart from this, we used adaptive step-size to prevent overshoot and slow convergence.
 
 \section{Results}
+\subsection{Generating pointclouds from stereo images}
+See pointclouds in \textit{pointclouds/*}. The original images had a resolution of 640 $\times$ 512 pixels, so the original pointclouds had of the order of $10^5$ points. This is too much for us to process, so we downsample the pointclouds by a factor of $\sim$100 to reduce the number to a managable quantity.
 
+\subsection{Estimating identity transformations}
+The first checkpoint is checking if the code estimates the transformation between identical pointclouds correctly. We save the output rotation matrix in \textit{data/tfxxR.transform} and the output translation in \textit{data/tfxxt.transform} where x is the pointcloud number. For example, the estimated identity transformation for the pointcloud \textit{pair00.pcd} is $$\hat{\textbf{R}} = \begin{pmatrix}
+  1 & -0.000846276 & -0.000223026 \\
+  0.000844048 & 0.999952 & -0.00980883 \\
+  0.000231316 & 0.00980864 & 0.999952
+ \end{pmatrix}$$ and $$\hat{\textbf{t}} = \begin{pmatrix}
+ 1.67763e-05 \\
+ -0.00438295 \\
+ -0.000716368
+ \end{pmatrix}$$
+
+\noindent As is clear, these are very close to the identity transformation, confirming that the method estimates identity transformations properly. We sometimes have convergence problems (especially for large rotation angles). The plot of the objective function (starting from some initialisation) is shown below: \\ \\
+\centerline{\includegraphics[scale=0.35]{objFn_pair00}}
+
+\subsection{Estimating synthetic transformations} 
+As the next step, we `synthesize' transformed pointclouds (by translating and rotating one of the pointclouds by known quantites). For example, the transformation matrix
+$$T = \begin{pmatrix}
+ 0.500001 & -0.866025 & 0 & 2.5 \\
+ 0.866025 & 0.500001 & 0 & 0 \\
+        0 & 0 & 1 & 0 \\
+        0 & 0 & 0 & 1
+\end{pmatrix}$$
+on the pointcloud \textit{pair00.pcd} yields the two pointclouds (one white and one green) as shown: \\ \\
+\centerline{\includegraphics[scale=0.5]{synthPair}} \\ \\
+We then run the matching algorithm on these pointclouds and compare the output to the (known) transformation matrix. For this particular example, the estimated transformation after five iterations is
+$$T = \begin{pmatrix}
+ 0.60301 & -0.797733 & 0 & 2.256 \\
+ 0.797733 & 0.60301 & 0 & 0 \\
+        0 & 0 & 1 & 0 \\
+        0 & 0 & 0 & 1
+\end{pmatrix}$$
+which is close enough to the original value. A plot of the objective function with iteration number is shown below: \\ \\
+\centerline{\includegraphics[scale=0.35]{objFn_pair00_trans}} \\ \\
+
+\subsection{Estimating non-identity transformations}
+Now we try to estimate the transformation between different pointclouds. Here we have significant convergence problems if the transformation is not initialised sufficiently close to the actual transformation. We think this is because the pointclouds used have relatively little overlap, and this is not sufficient to make the algorithm converge to the actual transformation. We do not include the results since we do not think this part is complete.
+
+\section{Other Methods}
+We also tried an implementation of Coherent Point Drift, see \cite{cpd} and \cite{wiki}, which we did not get time to debug and test. This is in a non-working state right now.
+
+\section{Concluding Remarks}
+We showed the algorithm working for the identity transformation and transformations that don't differ much from identity. The objective function is bounded below by zero, and almost always (at least in the synthetic transformation case) drops down to zero by the first five iterations. This shows that the solution obtained is (almost) optimal. We did not explore the parameter space (changing Gaussian variance and step size) much. However, estimation of small transformations is useful enough since two pointclouds which are captured in succession are related by transformations that are not very different from each other.
 
 \begin{thebibliography}{9}
 
@@ -54,7 +127,16 @@ We closely follow the method outlined in \cite{main}. The method involves modell
   2012.
   
 \bibitem{cppStuff}
-  Documentation for the OpenCV, Point Cloud and Eigen libraries in C++ \href{http://docs.opencv.org/}{here}, \href{http://pointclouds.org/documentation/}{here} and \href{http://eigen.tuxfamily.org/dox/}{here} respectively
+  Documentation for the OpenCV, Point Cloud and Eigen libraries in C++ \href{http://docs.opencv.org/}{here},\href{http://pointclouds.org/documentation/}{here} and \href{http://eigen.tuxfamily.org/dox/}{here} respectively
+
+\bibitem{cpd}
+  Andriy Myronenko and Xubo Song,
+  \emph{Point Set Registration: Coherent Point Drift}.
+  IEEE Transactions on Pattern Analysis and Machine Intelligence,
+  2010.
+
+\bibitem{wiki}
+  The Wikipedia article on Point Set Registration \href{http://en.wikipedia.org/wiki/Point_set_registration}{here}.
 
 \end{thebibliography}
 

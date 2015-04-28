@@ -2,3 +2,9 @@
 \BOOKMARK [1][-]{section.2}{Method}{}% 2
 \BOOKMARK [1][-]{section.3}{Implementation}{}% 3
 \BOOKMARK [1][-]{section.4}{Results}{}% 4
+\BOOKMARK [2][-]{subsection.4.1}{Generating pointclouds from stereo images}{section.4}% 5
+\BOOKMARK [2][-]{subsection.4.2}{Estimating identity transformations}{section.4}% 6
+\BOOKMARK [2][-]{subsection.4.3}{Estimating synthetic transformations}{section.4}% 7
+\BOOKMARK [2][-]{subsection.4.4}{Estimating non-identity transformations}{section.4}% 8
+\BOOKMARK [1][-]{section.5}{Other Methods}{}% 9
+\BOOKMARK [1][-]{section.6}{Concluding Remarks}{}% 10
