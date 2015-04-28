@@ -29,13 +29,11 @@ Odometry refers to the use of data from motion sensors to estimate change in pos
 \newpage
 
 \section{Method}
-We closely follow the method outlined in \cite{main}. 
+We closely follow the method outlined in \cite{main}. The method involves modelling both the reference and the moving pointclouds as Mixture Models. We choose spherical Gaussian Mixtures and equal weights per-point for simplicity and easy updates. Our model for the pointclouds, thus, is given by $$\mathcal{S}(\textbf{x}) = \sum_{i=1}^N \mathcal{G}(\textbf{x}; \textbf{s}_i, \Sigma), \mathcal{M}(\textbf{x}) = \sum_{i=1}^M \mathcal{G}(\textbf{x}; \textbf{m}_i, \Sigma)$$ where $N = |\mathcal{S}|, M = |\mathcal{M}|, \Sigma = diag(\sigma^2)$. We then maximise the kernel correlation between a translated and rotated version of the moving pointcloud and the reference pointcloud, with respect to the rotation and the translation, yielding the optimization problem $$\min_{\textbf{R}, \textbf{t}} \sum_{i=1}^M \sum_{j=1}^N e^{-\frac{|| \textbf{d}_{ij} ||}{2 \sigma^2}}$$ such that $\textbf{d}_{ij} = \textbf{Rx}_i + \textbf{t} - \textbf{y}_j$ and $\textbf{R}^T \textbf{R} = I$. This is a convex program and the optimization is carried out using Gradient Descent on the components of $\textbf{t}$ and a parametrization of the rotation matrix $\textbf{R}$, as described in the implementation section below.
 
 \section{Implementation}
 
-\section{Conclusion}
-
-\section{Future Scope}
+\section{Results}
 
 
 \begin{thebibliography}{9}
