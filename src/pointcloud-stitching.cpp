@@ -2,6 +2,7 @@
 * Stereo Visual Odometry using registration with Gaussian mixtures					*
 * Alankar Kotwal <alankar.kotwal@iitb.ac.in>, Anand Kalvit <anandiitb12@gmail.com>	*
 * Pointcloud stitching using the transformation estimated by pointset-matching		*
+* Under construction																*
 \***********************************************************************************/
 
 #include <opencv2/opencv.hpp>

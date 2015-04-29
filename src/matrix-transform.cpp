@@ -17,7 +17,7 @@ int main (int argc, char** argv)
 	transform.translation() << 0.0, 0.0, 0.0;
 
 	// The same rotation matrix as before; tetha radians arround Z axis
-	transform.rotate (Eigen::AngleAxisf (0.1, Eigen::Vector3f::UnitZ()));
+	transform.rotate (Eigen::AngleAxisf (3.14/6, Eigen::Vector3f::UnitZ()));
 
 	// Print the transformation
 	std::cout << transform.matrix() << std::endl;

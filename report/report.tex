@@ -34,7 +34,7 @@ We closely follow the method outlined in \cite{main}. The method involves modell
 \section{Implementation}
 We chose to code the method in C++ using PCL to handle pointcloud representation and i/o, and Eigen to handle the matrix algebra. With this, we chose to represent rotations using unit quaternions to make gradient-descent optimization convenient and avoid the orthogonality constraint on \textbf{R}.
 \linebreak \linebreak
-\noindent Gradient ascent requires us to calculate the gradient of the objective function with respect to the optimizing variables. With the help of \cite{mainPre} (see appendix), we get, with $F(\mathcal{S}, \mathcal{M}, \textbf{R}, \textbf{t})$ being the objective function defined above, $$\frac{\partial F}{\partial \textbf{t}} = \textbf{G}^T\textbf{1}_m$$ $$\frac{\partial F}{\partial r_i} = \textbf{1}_d^T \left(\textbf{G}^T\textbf{M}_0 \otimes \frac{\partial \textbf{R}}{\partial r_i}\right)\textbf{1}_d$$ where $(r_0, r_1, r_2, r_3)$ is the unit-quaternion representation of the rotation matrix.
+\noindent Gradient ascent requires us to calculate the gradient of the objective function with respect to the optimizing variables. With the help of \cite{mainPre} (see appendix 2), we get, with $F(\mathcal{S}, \mathcal{M}, \textbf{R}, \textbf{t})$ being the objective function defined above, $$\frac{\partial F}{\partial \textbf{t}} = \textbf{G}^T\textbf{1}_m$$ $$\frac{\partial F}{\partial r_i} = \textbf{1}_d^T \left(\textbf{G}^T\textbf{M}_0 \otimes \frac{\partial \textbf{R}}{\partial r_i}\right)\textbf{1}_d$$ where $(r_0, r_1, r_2, r_3)$ is the unit-quaternion representation of the rotation matrix.
 \linebreak \linebreak
 \noindent
 The derivatives of $\textbf{R}$ with respect to $r_i$ are calculated, from \cite{quatParam} as
@@ -102,7 +102,11 @@ which is close enough to the original value. A plot of the objective function wi
 The value of the x-component of the displacement is shown below: \\ \\
 \centerline{\includegraphics[scale=0.35]{pair00_dispX}} \\ \\
 
-\subsection{Estimating non-identity transformations}
+\noindent A similar experiment with a pointcloud rotated at $30^0$, shown below, yields the following objective-function graph: \\ \\
+\centerline{\includegraphics[scale=0.75]{rotSynthPair}}  \\ \\
+\centerline{\includegraphics[scale=0.35]{pair00_rotObjFn}} \\ \\
+
+\subsection{Estimating transformations between different pointclouds}
 Now we try to estimate the transformation between different pointclouds. Here we have significant convergence problems if the transformation is not initialised sufficiently close to the actual transformation. We think this is because the pointclouds used have relatively little overlap, and this is not sufficient to make the algorithm converge to the actual transformation. We weren't able to get convergence with the data we had. We do not include the results since we do not think this part is complete.
 
 \section{Other Methods}
@@ -111,7 +115,7 @@ We also tried an implementation of Coherent Point Drift, see \cite{cpd} and \cit
 \section{Concluding Remarks}
 We showed the algorithm working for the identity transformation and transformations that don't differ much from identity. However, estimation of small transformations is useful enough since two pointclouds which are captured in succession are related by transformations that are not very different from each other.
 \newline \linebreak
-\noindent There are a few problems with the method. In order to obtain results with almost any non-identity transformation, we need to tune the variance, the step-size, and the step-size adjustment parameters for the adaptive part to get good results. Almost always, we need to initialize the estimate at a point that is close enough to the 
+\noindent There are a few problems with the method. In order to obtain results with almost any non-identity transformation, we need to tune the variance, the step-size, and the step-size adjustment parameters for the adaptive part to get good results. Almost always, we need to initialize the estimate at a point that is close enough to the actual transformation to avoid getting lost in the parameter space.
 
 \begin{thebibliography}{9}
 

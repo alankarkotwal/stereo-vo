@@ -17,7 +17,7 @@
 #define GAUSS_VAR 10000
 #define MAX_ITER 20
 #define MAX_OBJ_FN 1
-float stepSize = 0.00001;
+float stepSize = 0.01;
 //float stepSize = 0.0000001;
 
 using namespace std;
@@ -50,7 +50,7 @@ int main(int argc, char *argv[]) {
 	
 	// Pointset matching here
 	Vector4f rot(1, 0, 0, 0);
-	Vector3f trans(0, 0, 0);
+	Vector3f trans(-245, 0, 0);
 	
 	float objFn = 1000000000000;
 	float oldObjFn = 1000000000000;
@@ -124,8 +124,8 @@ int main(int argc, char *argv[]) {
 		while(1);*/
 		
 		// Perform the update
-		//trans = trans + stepSize*transGrad;
-		rot = rot + stepSize*rotGrad;
+		trans = trans + stepSize*transGrad;
+		//rot = rot + stepSize*rotGrad;
 		rot = rot/(sqrt(pow(rot(0), 2) + pow(rot(1), 2) + pow(rot(2), 2) + pow(rot(3), 2)));
 		
 		iter = iter + 1;
