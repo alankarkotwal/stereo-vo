@@ -29,12 +29,12 @@ Odometry refers to the use of data from motion sensors to estimate change in pos
 \newpage
 
 \section{Method}
-We closely follow the method outlined in \cite{main}. The method involves modelling both the reference and the moving pointclouds as Mixture Models. We choose spherical Gaussian Mixtures and equal weights per-point for simplicity and easy updates. Our model for the pointclouds, thus, is given by $$\mathcal{S}(\textbf{x}) = \sum_{i=1}^N \mathcal{G}(\textbf{x}; \textbf{s}_i, \Sigma), \mathcal{M}(\textbf{x}) = \sum_{i=1}^M \mathcal{G}(\textbf{x}; \textbf{m}_i, \Sigma)$$ where $N = |\mathcal{S}|, M = |\mathcal{M}|, \Sigma = diag(\sigma^2)$. We then maximise the kernel correlation between a translated and rotated version of the moving pointcloud and the reference pointcloud, with respect to the rotation and the translation, yielding the optimization problem $$\textbf{R}, \textbf{t} = arg\min_{\textbf{R}, \textbf{t}} \sum_{i=1}^M \sum_{j=1}^N e^{-\frac{|| \textbf{Rx}_i + \textbf{t} - \textbf{y}_j ||^2}{2 \sigma^2}}$$ such that $\textbf{R}^T \textbf{R} = I$. This is a convex program and the optimization is carried out using Gradient Descent on the components of $\textbf{t}$ and a parametrization of the rotation matrix $\textbf{R}$, as described in the implementation section below.
+We closely follow the method outlined in \cite{main}. The method involves modelling both the reference and the moving pointclouds as Mixture Models. We choose spherical Gaussian Mixtures and equal weights per-point for simplicity and easy updates. Our model for the pointclouds, thus, is given by $$\mathcal{S}(\textbf{x}) = \sum_{i=1}^N \mathcal{G}(\textbf{x}; \textbf{s}_i, \Sigma), \mathcal{M}(\textbf{x}) = \sum_{i=1}^M \mathcal{G}(\textbf{x}; \textbf{m}_i, \Sigma)$$ where $N = |\mathcal{S}|, M = |\mathcal{M}|, \Sigma = diag(\sigma^2)$. We then maximise the kernel correlation between a translated and rotated version of the moving pointcloud and the reference pointcloud, with respect to the rotation and the translation, yielding the optimization problem $$\textbf{R}, \textbf{t} = arg\max_{\textbf{R}, \textbf{t}} \sum_{i=1}^M \sum_{j=1}^N e^{-\frac{|| \textbf{Rx}_i + \textbf{t} - \textbf{y}_j ||^2}{2 \sigma^2}}$$ such that $\textbf{R}^T \textbf{R} = I$. This is a convex program and the optimization is carried out using gradient ascent on the components of $\textbf{t}$ and a parametrization of the rotation matrix $\textbf{R}$, as described in the implementation section below.
 
 \section{Implementation}
 We chose to code the method in C++ using PCL to handle pointcloud representation and i/o, and Eigen to handle the matrix algebra. With this, we chose to represent rotations using unit quaternions to make gradient-descent optimization convenient and avoid the orthogonality constraint on \textbf{R}.
 \linebreak \linebreak
-\noindent Gradient descent requires us to calculate the gradient of the objective function with respect to the optimizing variables. With the help of \cite{mainPre}, we get, with $F(\mathcal{S}, \mathcal{M}, \textbf{R}, \textbf{t})$ being the objective function defined above, $$\frac{\partial F}{\partial \textbf{t}} = \textbf{G}^T\textbf{1}_m$$ $$\frac{\partial F}{\partial r_i} = \textbf{1}_d^T \left(\textbf{G}^T\textbf{M}_0 \otimes \frac{\partial \textbf{R}}{\partial r_i}\right)\textbf{1}_d$$ where $(r_0, r_1, r_2, r_3)$ is the unit-quaternion representation of the rotation matrix.
+\noindent Gradient ascent requires us to calculate the gradient of the objective function with respect to the optimizing variables. With the help of \cite{mainPre} (see appendix), we get, with $F(\mathcal{S}, \mathcal{M}, \textbf{R}, \textbf{t})$ being the objective function defined above, $$\frac{\partial F}{\partial \textbf{t}} = \textbf{G}^T\textbf{1}_m$$ $$\frac{\partial F}{\partial r_i} = \textbf{1}_d^T \left(\textbf{G}^T\textbf{M}_0 \otimes \frac{\partial \textbf{R}}{\partial r_i}\right)\textbf{1}_d$$ where $(r_0, r_1, r_2, r_3)$ is the unit-quaternion representation of the rotation matrix.
 \linebreak \linebreak
 \noindent
 The derivatives of $\textbf{R}$ with respect to $r_i$ are calculated, from \cite{quatParam} as
@@ -68,13 +68,13 @@ See pointclouds in \textit{pointclouds/*}. The original images had a resolution 
 
 \subsection{Estimating identity transformations}
 The first checkpoint is checking if the code estimates the transformation between identical pointclouds correctly. We save the output rotation matrix in \textit{data/tfxxR.transform} and the output translation in \textit{data/tfxxt.transform} where x is the pointcloud number. For example, the estimated identity transformation for the pointcloud \textit{pair00.pcd} is $$\hat{\textbf{R}} = \begin{pmatrix}
-  1 & -0.000846276 & -0.000223026 \\
-  0.000844048 & 0.999952 & -0.00980883 \\
-  0.000231316 & 0.00980864 & 0.999952
+1 & -7.72142 \times 10^{-10} & 7.72142 \times 10^{-10} \\
+7.72142 \times 10^{-10} & 1 & 1.26552 \times 10^{-8} \\
+-7.72142 \times 10^{-10} & -1.26552 \times 10^{-8} & 1
  \end{pmatrix}$$ and $$\hat{\textbf{t}} = \begin{pmatrix}
- 1.67763e-05 \\
- -0.00438295 \\
- -0.000716368
+8.77619 \times 10^{-10} \\
+1.20335 \times 10^{-11} \\
+4.22396 \times 10^{-11}
  \end{pmatrix}$$
 
 \noindent As is clear, these are very close to the identity transformation, confirming that the method estimates identity transformations properly. We sometimes have convergence problems (especially for large rotation angles). The plot of the objective function (starting from some initialization) is shown below: \\ \\
@@ -141,16 +141,27 @@ We showed the algorithm working for the identity transformation and transformati
 \end{thebibliography}
 
 \section*{Appendix 1}
-Here we derive the expression for the kernel correlation between two Gaussian mixtures. \href{lolwa}{TODO}.
+Here we derive the expression for the kernel correlation between two Gaussian mixtures. Following \cite{main} we want to evaluate the integral $$\int_{\mathcal{R}^3} f_{\textbf{R, t}} g d\textbf{x}$$ with $f$ and $g$ being Gaussian mixtures with means $\textbf{s}_i$ and $\textbf{m}_i$ respectively. We assume uncorrelated Gaussians, so covariance everywhere is $\sigma^2 \textbf{I}$. Thus, the correlation becomes, \textit{modulo} constants, $$\sum_{i=1}^{N} \sum_{j=1}^{M} \int_{\mathcal{R}^3} e^{\frac{|| \textbf{x} - \textbf{Rs}_i - \textbf{t} ||^2 + || \textbf{x} - \textbf{m}_j ||^2}{2 \sigma^2}}$$ The numerator of the exponential can be written as $$\left( \textbf{x} - \textbf{Rs}_i - \textbf{t} \right)^T \left( \textbf{x} - \textbf{Rs}_i - \textbf{t} \right) + \left( \textbf{x} - \textbf{m}_j \right)^T \left( \textbf{x} - \textbf{m}_j \right)$$ With $\textbf{Rs}_i + \textbf{t} \textbf{n}_i$,
+$$\left( \textbf{x} - \textbf{m} \right)^T \left( \textbf{x} - \textbf{m} \right) + \left( \textbf{x} - \textbf{n} \right)^T \left( \textbf{x} - \textbf{n} \right)$$ which is the same as $$\left( \textbf{x} - (\textbf{m}+\textbf{n}) \right)^T \left( \textbf{x} - (\textbf{m}+\textbf{n}) \right)$$ which makes the correlation the sum of Gaussian functions with mean $\textbf{RS}_i + t - m_j$ evaluated ar zero. So $$\int_{\mathcal{R}^3} f_{\textbf{R, t}} g d\textbf{x} = \mathcal{K} \sum_{i=1}^{N} \sum_{j=1}^{M} e^{-\frac{|| \textbf{Rs}_i + \textbf{t} - \textbf{m}_j ||^2}{2 \sigma^2}}$$ where $\mathcal{K}$ is a positive constant independent of \textbf{R} or \textbf{t}.
 
 \section*{Appendix 2}
 Here we derive the expressions for the gradient descent technique used in the registration method.
-\linebreak \linebreak
+\newline \linebreak
 \noindent The optimization problem under consideration is $$\textbf{R}, \textbf{t} = arg\min_{\textbf{R}, \textbf{t}} \sum_{i=1}^M \sum_{j=1}^N e^{-\frac{|| \textbf{Rx}_i + \textbf{t} - \textbf{y}_j ||^2}{2 \sigma^2}}$$ such that $\textbf{R}^T \textbf{R} = I$. To calculate the derivative of this quantity with respect to the optimization variables \textbf{R} and \textbf{t}, we use the chain rule:
-$$\frac{\partial F}{\partial q} = \frac{\partial F}{\partial M} \frac{\partial M}{\partial q}$$ where $M$ is the transformed data-set and $q$ is the optimization variable under consideration. Now with $\textbf{m}_t$ being the transformed version of $\textbf{x}_t$, $$\frac{\partial F}{\partial \textbf{m}_t} = \sum_{j=1}^N \frac{\partial}{\partial \textbf{m}_t} e^{-\frac{|| \textbf{m}_t - \textbf{y}_j ||^2}{2 \sigma^2}}$$ thus yielding $$\frac{\partial F}{\partial \textbf{m}_t} = \sum_{j=1}^N \frac{e^{-\frac{|| \textbf{m}_t - \textbf{y}_j ||^2}{2 \sigma^2}}}{\sigma^2} \left( \textbf{m}_t-\textbf{y}_j \right)$$ The matrix consisting of M of these column vectors is what we called $\textbf{G}^T$.
+$$\frac{\partial F}{\partial q} = \frac{\partial F}{\partial M} \frac{\partial M}{\partial q}$$ where $M$ is the transformed data-set and $q$ is the optimization variable under consideration. Now with $\textbf{m}_t$ being the transformed version of $\textbf{x}_t$, $$\frac{\partial F}{\partial \textbf{m}_t} = \sum_{j=1}^N \frac{\partial}{\partial \textbf{m}_t} e^{-\frac{|| \textbf{m}_t - \textbf{y}_j ||^2}{2 \sigma^2}}$$ thus yielding $$\frac{\partial F}{\partial \textbf{m}_t} = -\sum_{j=1}^N \frac{e^{-\frac{|| \textbf{m}_t - \textbf{y}_j ||^2}{2 \sigma^2}}}{\sigma^2} \left( \textbf{m}_t-\textbf{y}_j \right)^T$$ The matrix consisting of M of these row vectors is what we called $\textbf{G}^T$.
 \newline \linebreak
 \noindent Clearly, $$\frac{\partial \textbf{m}_i}{\partial t_x} = \frac{\partial \left(\textbf{Rs}_i + \textbf{t}\right)}{\partial t_x}$$ which is just 1. So, the derivative of $F$ with respect to $\textbf{t}$ is just $\textbf{G}^T \textbf{1}_M$ where $\textbf{1}_M$ is the column vector of all ones, corresponsing to adding up the derivatives with respect to all $\textbf{m}_t$s.
 \newline \linebreak
-\noindent Figuring out the derivative with respect to rotation is a bit more difficult since we have a constraint on the rotation matrix. To avoid having to explicitly enforce this constraint we use a quaternion parametrization of the rotation matrix. 
+\noindent Figuring out the derivative with respect to rotation is a bit more difficult since we have a constraint on the rotation matrix. To avoid having to explicitly enforce this constraint we use a quaternion parametrization of the rotation matrix. Following the excellent treatment in \cite{quatParam}, we have the rotation matrix induced by the quaternion $\textbf{q} = (q_0, q_1, q_2, q_3)$ is
+$$\textbf{R} = \begin{pmatrix}
+q_0^2 + q_1^2 + q_2^2 + q_3^2 & 2(q_1 q_2-q_0 q_3) & 2(q_1 q_3 + q_0 q_2) \\
+2(q_1 q_2 + q_0 q_3) & q_0^2 - q_1^2 + q_2^2 - q_3^2 & 2(q_2 q_3 - q_0 q_1) \\
+2(q_1 q_3 - q_0 q_2) & 2(q_2 q_3 + q_0 q_1) & q_0^2 - q_1^2 - q_2^2 + q_3^2
+\end{pmatrix}$$
+Now clearly $$\frac{\partial \textbf{m}_i}{\partial q_t} = \frac{\partial \textbf{R}}{\partial q_t} \textbf{m}_{i0}$$ where $\textbf{m}_{i0}$ is the corresponding point in the untransformed reference pointcloud. Now we directly differentiate the objective function and then convert to the desired form using matrix calculus, just for a change. 
+$$\frac{\partial F}{\partial q_t} = -\sum_{i=1}^M \sum_{j=1}^N \frac{e^{-\frac{|| \textbf{m}_i - \textbf{y}_j ||^2}{2 \sigma^2}}}{\sigma^2} (\textbf{m}_i - \textbf{y}_j)^T \frac{\partial \textbf{m}_i}{\partial q_t}$$
+thus
+$$\frac{\partial F}{\partial q_t} = -\sum_{i=1}^M \sum_{j=1}^N \frac{e^{-\frac{|| \textbf{m}_i - \textbf{y}_j ||^2}{2 \sigma^2}}}{\sigma^2} (\textbf{m}_i - \textbf{y}_j)^T \frac{\partial \textbf{R}}{\partial q_t} \textbf{m}_{i0}$$
+Writing this out explicitly and interchanging the sum of the elements of a matrix expressed by $(\textbf{m}_i - \textbf{y}_j)^T \frac{\partial \textbf{R}}{\partial q_t} \textbf{m}_{i0}$ and the matrix product expressed by the double summation yields  $$\frac{\partial F}{\partial q_i} = \textbf{1}_d^T \left(\textbf{G}^T\textbf{M}_0 \otimes \frac{\partial \textbf{R}}{\partial q_i}\right)\textbf{1}_d$$
 
 \end{document}

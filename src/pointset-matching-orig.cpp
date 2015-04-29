@@ -14,11 +14,9 @@
 #include <string>	
 
 #define PI 3.14159265
-#define GAUSS_VAR 10000
-#define MAX_ITER 20
+#define GAUSS_VAR 1
+#define MAX_ITER 5
 #define MAX_OBJ_FN 1
-float stepSize = 0.0001;
-//float stepSize = 0.0000001;
 
 using namespace std;
 using namespace pcl;
@@ -62,6 +60,7 @@ int main(int argc, char *argv[]) {
 	VectorXf OneD(3);
 	OneD.setOnes();
 	
+	float stepSize = 0.01;
 	int iter = 0;
 	
 	while(iter < MAX_ITER/* && objFn > MAX_OBJ_FN*/) { // Termination criterion
@@ -85,9 +84,9 @@ int main(int argc, char *argv[]) {
 					
 					diff << diff(0)-s->points[n].x, diff(1)-s->points[n].y, diff(2)-s->points[n].z;
 					
-					float pref = -((exp(-(pow(diff(0), 2) + pow(diff(1), 2) + pow(diff(2), 2))/(2*GAUSS_VAR)))/(GAUSS_VAR));
-					G(i, j) += pref * diff(j);
-					objFn += exp(-(pow(diff(0), 2) + pow(diff(1), 2) + pow(diff(2), 2))/(2*GAUSS_VAR));
+					float pref = ((exp(-(pow(diff(0), 2) + pow(diff(1), 2) + pow(diff(2), 2))/(2*GAUSS_VAR)))/(GAUSS_VAR));
+					G(i, j) += pref * (diff(0)*rotM(0, j) + diff(1)*rotM(1, j) + diff(2)*rotM(2, j));
+					objFn += pref;
 				
 				}
 				
@@ -120,18 +119,15 @@ int main(int argc, char *argv[]) {
 		Vector4f rotGrad;
 		rotGrad << OneD.transpose()*temp1*OneD, OneD.transpose()*temp2*OneD, OneD.transpose()*temp3*OneD, OneD.transpose()*temp4*OneD;
 		
-		/*cout << transGrad << endl << rotGrad << endl;
-		while(1);*/
-		
 		// Perform the update
-		trans = trans + stepSize*transGrad;
-		rot = rot + stepSize*rotGrad;
+		trans = trans - stepSize*transGrad;
+		rot = rot - stepSize*rotGrad;
 		rot = rot/(sqrt(pow(rot(0), 2) + pow(rot(1), 2) + pow(rot(2), 2) + pow(rot(3), 2)));
 		
 		iter = iter + 1;
 		
 		/*if(objFn < oldObjFn) {
-			stepSize = 1.5*stepSize;
+			stepSize = 1.1*stepSize;
 		}
 		else {
 			stepSize = 0.5*stepSize;
