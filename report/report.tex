@@ -64,7 +64,7 @@ $$\frac{\partial \textbf{R}}{\partial r_3} = 2\begin{pmatrix}
 
 \section{Results}
 \subsection{Generating pointclouds from stereo images}
-See pointclouds in \textit{pointclouds/*}. The original images had a resolution of 640 $\times$ 512 pixels, so the original pointclouds had of the order of $10^5$ points. This is too much for us to process, so we downsample the pointclouds by a factor of $\sim$100 to reduce the number to a managable quantity.
+See pointclouds in \textit{pointclouds/*}. The original images had a resolution of 640 $\times$ 512 pixels, so the original pointclouds had of the order of $10^5$ points. This is too much for us to process, so we down-sample the pointclouds by a factor of $\sim$100 to reduce the number to a manageable quantity.
 
 \subsection{Estimating identity transformations}
 The first checkpoint is checking if the code estimates the transformation between identical pointclouds correctly. We save the output rotation matrix in \textit{data/tfxxR.transform} and the output translation in \textit{data/tfxxt.transform} where x is the pointcloud number. For example, the estimated identity transformation for the pointcloud \textit{pair00.pcd} is $$\hat{\textbf{R}} = \begin{pmatrix}
@@ -81,33 +81,37 @@ The first checkpoint is checking if the code estimates the transformation betwee
 \centerline{\includegraphics[scale=0.35]{objFn_pair00}}
 
 \subsection{Estimating synthetic transformations} 
-As the next step, we `synthesize' transformed pointclouds (by translating and rotating one of the pointclouds by known quantites). For example, the transformation matrix
+As the next step, we `synthesize' transformed pointclouds (by translating and rotating one of the pointclouds by known quantities). For example, the transformation matrix
 $$T = \begin{pmatrix}
- 0.500001 & -0.866025 & 0 & 2.5 \\
- 0.866025 & 0.500001 & 0 & 0 \\
-        0 & 0 & 1 & 0 \\
-        0 & 0 & 0 & 1
+ 1 & 0 & 0 & 250 \\
+ 0 & 1 & 0 & 0 \\
+ 0 & 0 & 1 & 0 \\
+ 0 & 0 & 0 & 1
 \end{pmatrix}$$
 on the pointcloud \textit{pair00.pcd} yields the two pointclouds (one white and one green) as shown: \\ \\
-\centerline{\includegraphics[scale=0.5]{synthPair}} \\ \\
-We then run the matching algorithm on these pointclouds and compare the output to the (known) transformation matrix. For this particular example, the estimated transformation after five iterations is
+\centerline{\includegraphics[scale=0.5]{dispSynthPair}} \\ \\
+We then run the matching algorithm on these pointclouds and compare the output to the (known) transformation matrix. For this particular example, the estimated transformation after twenty iterations (the estimate was initialised at -245) is
 $$T = \begin{pmatrix}
- 0.60301 & -0.797733 & 0 & 2.256 \\
- 0.797733 & 0.60301 & 0 & 0 \\
-        0 & 0 & 1 & 0 \\
-        0 & 0 & 0 & 1
+ 1 & 0 & 0 & 249.903 \\
+ 0 & 1 & 0 & 0 \\
+ 0 & 0 & 1 & 0 \\
+ 0 & 0 & 0 & 1
 \end{pmatrix}$$
 which is close enough to the original value. A plot of the objective function with iteration number is shown below: \\ \\
-\centerline{\includegraphics[scale=0.35]{objFn_pair00_trans}} \\ \\
+\centerline{\includegraphics[scale=0.35]{pair00_dispObjFn}} \\ \\
+The value of the x-component of the displacement is shown below: \\ \\
+\centerline{\includegraphics[scale=0.35]{pair00_dispX}} \\ \\
 
 \subsection{Estimating non-identity transformations}
-Now we try to estimate the transformation between different pointclouds. Here we have significant convergence problems if the transformation is not initialised sufficiently close to the actual transformation. We think this is because the pointclouds used have relatively little overlap, and this is not sufficient to make the algorithm converge to the actual transformation. We do not include the results since we do not think this part is complete.
+Now we try to estimate the transformation between different pointclouds. Here we have significant convergence problems if the transformation is not initialised sufficiently close to the actual transformation. We think this is because the pointclouds used have relatively little overlap, and this is not sufficient to make the algorithm converge to the actual transformation. We weren't able to get convergence with the data we had. We do not include the results since we do not think this part is complete.
 
 \section{Other Methods}
 We also tried an implementation of Coherent Point Drift, see \cite{cpd} and \cite{wiki}, which we did not get time to debug and test. This is in a non-working state right now.
 
 \section{Concluding Remarks}
-We showed the algorithm working for the identity transformation and transformations that don't differ much from identity. The objective function is bounded below by zero, and almost always (at least in the synthetic transformation case) drops down to zero by the first five iterations. This shows that the solution obtained is (almost) optimal. We did not explore the parameter space (changing Gaussian variance and step size) much. However, estimation of small transformations is useful enough since two pointclouds which are captured in succession are related by transformations that are not very different from each other.
+We showed the algorithm working for the identity transformation and transformations that don't differ much from identity. However, estimation of small transformations is useful enough since two pointclouds which are captured in succession are related by transformations that are not very different from each other.
+\newline \linebreak
+\noindent There are a few problems with the method. In order to obtain results with almost any non-identity transformation, we need to tune the variance, the step-size, and the step-size adjustment parameters for the adaptive part to get good results. Almost always, we need to initialize the estimate at a point that is close enough to the 
 
 \begin{thebibliography}{9}
 
@@ -122,7 +126,7 @@ We showed the algorithm working for the identity transformation and transformati
   
 \bibitem{quatParam}
   George Terzakis, Phil Culverhouse \textit{et al},
-  \emph{A Recipe on the Parameterization of Rotation Matrices for Non-Linear Optimization using Quaternions}.
+  \emph{A Recipe on the Parametrization of Rotation Matrices for Non-Linear Optimization using Quaternions}.
   Technical Report of the School of Marine Science and Engineering, Plymouth University,
   2012.
   
@@ -142,7 +146,7 @@ We showed the algorithm working for the identity transformation and transformati
 
 \section*{Appendix 1}
 Here we derive the expression for the kernel correlation between two Gaussian mixtures. Following \cite{main} we want to evaluate the integral $$\int_{\mathcal{R}^3} f_{\textbf{R, t}} g d\textbf{x}$$ with $f$ and $g$ being Gaussian mixtures with means $\textbf{s}_i$ and $\textbf{m}_i$ respectively. We assume uncorrelated Gaussians, so covariance everywhere is $\sigma^2 \textbf{I}$. Thus, the correlation becomes, \textit{modulo} constants, $$\sum_{i=1}^{N} \sum_{j=1}^{M} \int_{\mathcal{R}^3} e^{\frac{|| \textbf{x} - \textbf{Rs}_i - \textbf{t} ||^2 + || \textbf{x} - \textbf{m}_j ||^2}{2 \sigma^2}}$$ The numerator of the exponential can be written as $$\left( \textbf{x} - \textbf{Rs}_i - \textbf{t} \right)^T \left( \textbf{x} - \textbf{Rs}_i - \textbf{t} \right) + \left( \textbf{x} - \textbf{m}_j \right)^T \left( \textbf{x} - \textbf{m}_j \right)$$ With $\textbf{Rs}_i + \textbf{t} \textbf{n}_i$,
-$$\left( \textbf{x} - \textbf{m} \right)^T \left( \textbf{x} - \textbf{m} \right) + \left( \textbf{x} - \textbf{n} \right)^T \left( \textbf{x} - \textbf{n} \right)$$ which is the same as $$\left( \textbf{x} - (\textbf{m}+\textbf{n}) \right)^T \left( \textbf{x} - (\textbf{m}+\textbf{n}) \right)$$ which makes the correlation the sum of Gaussian functions with mean $\textbf{RS}_i + t - m_j$ evaluated ar zero. So $$\int_{\mathcal{R}^3} f_{\textbf{R, t}} g d\textbf{x} = \mathcal{K} \sum_{i=1}^{N} \sum_{j=1}^{M} e^{-\frac{|| \textbf{Rs}_i + \textbf{t} - \textbf{m}_j ||^2}{2 \sigma^2}}$$ where $\mathcal{K}$ is a positive constant independent of \textbf{R} or \textbf{t}.
+$$\left( \textbf{x} - \textbf{m} \right)^T \left( \textbf{x} - \textbf{m} \right) + \left( \textbf{x} - \textbf{n} \right)^T \left( \textbf{x} - \textbf{n} \right)$$ which is the same as $$2\left( \textbf{x} - (\textbf{m}+\textbf{n}) \right)^T \left( \textbf{x} - (\textbf{m}+\textbf{n}) \right)$$ which makes the correlation the sum of Gaussian functions with mean $\textbf{RS}_i + \textbf{t} - \textbf{m}_j$ evaluated at zero. So $$\int_{\mathcal{R}^3} f_{\textbf{R, t}} g d\textbf{x} = \mathcal{K} \sum_{i=1}^{N} \sum_{j=1}^{M} e^{-\frac{|| \textbf{Rs}_i + \textbf{t} - \textbf{m}_j ||^2}{2 \sigma^2}}$$ where $\mathcal{K}$ is a positive constant independent of \textbf{R} or \textbf{t}.
 
 \section*{Appendix 2}
 Here we derive the expressions for the gradient descent technique used in the registration method.
@@ -150,7 +154,7 @@ Here we derive the expressions for the gradient descent technique used in the re
 \noindent The optimization problem under consideration is $$\textbf{R}, \textbf{t} = arg\min_{\textbf{R}, \textbf{t}} \sum_{i=1}^M \sum_{j=1}^N e^{-\frac{|| \textbf{Rx}_i + \textbf{t} - \textbf{y}_j ||^2}{2 \sigma^2}}$$ such that $\textbf{R}^T \textbf{R} = I$. To calculate the derivative of this quantity with respect to the optimization variables \textbf{R} and \textbf{t}, we use the chain rule:
 $$\frac{\partial F}{\partial q} = \frac{\partial F}{\partial M} \frac{\partial M}{\partial q}$$ where $M$ is the transformed data-set and $q$ is the optimization variable under consideration. Now with $\textbf{m}_t$ being the transformed version of $\textbf{x}_t$, $$\frac{\partial F}{\partial \textbf{m}_t} = \sum_{j=1}^N \frac{\partial}{\partial \textbf{m}_t} e^{-\frac{|| \textbf{m}_t - \textbf{y}_j ||^2}{2 \sigma^2}}$$ thus yielding $$\frac{\partial F}{\partial \textbf{m}_t} = -\sum_{j=1}^N \frac{e^{-\frac{|| \textbf{m}_t - \textbf{y}_j ||^2}{2 \sigma^2}}}{\sigma^2} \left( \textbf{m}_t-\textbf{y}_j \right)^T$$ The matrix consisting of M of these row vectors is what we called $\textbf{G}^T$.
 \newline \linebreak
-\noindent Clearly, $$\frac{\partial \textbf{m}_i}{\partial t_x} = \frac{\partial \left(\textbf{Rs}_i + \textbf{t}\right)}{\partial t_x}$$ which is just 1. So, the derivative of $F$ with respect to $\textbf{t}$ is just $\textbf{G}^T \textbf{1}_M$ where $\textbf{1}_M$ is the column vector of all ones, corresponsing to adding up the derivatives with respect to all $\textbf{m}_t$s.
+\noindent Clearly, $$\frac{\partial \textbf{m}_i}{\partial t_x} = \frac{\partial \left(\textbf{Rs}_i + \textbf{t}\right)}{\partial t_x}$$ which is just 1. So, the derivative of $F$ with respect to $\textbf{t}$ is just $\textbf{G}^T \textbf{1}_M$ where $\textbf{1}_M$ is the column vector of all ones, corresponding to adding up the derivatives with respect to all $\textbf{m}_t$s.
 \newline \linebreak
 \noindent Figuring out the derivative with respect to rotation is a bit more difficult since we have a constraint on the rotation matrix. To avoid having to explicitly enforce this constraint we use a quaternion parametrization of the rotation matrix. Following the excellent treatment in \cite{quatParam}, we have the rotation matrix induced by the quaternion $\textbf{q} = (q_0, q_1, q_2, q_3)$ is
 $$\textbf{R} = \begin{pmatrix}

@@ -14,11 +14,10 @@ int main (int argc, char** argv)
 
 	Eigen::Affine3f transform = Eigen::Affine3f::Identity();
 
-	// Define a translation of 2.5 meters on the x axis.
-	transform.translation() << 250, 0.0, 0.0;
+	transform.translation() << 0.0, 0.0, 0.0;
 
 	// The same rotation matrix as before; tetha radians arround Z axis
-	transform.rotate (Eigen::AngleAxisf (3.1415/3, Eigen::Vector3f::UnitZ()));
+	transform.rotate (Eigen::AngleAxisf (0.1, Eigen::Vector3f::UnitZ()));
 
 	// Print the transformation
 	std::cout << transform.matrix() << std::endl;

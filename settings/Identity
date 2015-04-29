@@ -1,0 +1,2 @@
+#define GAUSS_VAR 10000
+float stepSize = 0.0000001;

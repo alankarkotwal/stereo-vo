@@ -17,7 +17,7 @@
 #define GAUSS_VAR 10000
 #define MAX_ITER 20
 #define MAX_OBJ_FN 1
-float stepSize = 0.0001;
+float stepSize = 0.00001;
 //float stepSize = 0.0000001;
 
 using namespace std;
@@ -124,7 +124,7 @@ int main(int argc, char *argv[]) {
 		while(1);*/
 		
 		// Perform the update
-		trans = trans + stepSize*transGrad;
+		//trans = trans + stepSize*transGrad;
 		rot = rot + stepSize*rotGrad;
 		rot = rot/(sqrt(pow(rot(0), 2) + pow(rot(1), 2) + pow(rot(2), 2) + pow(rot(3), 2)));
 		
@@ -137,6 +137,7 @@ int main(int argc, char *argv[]) {
 			stepSize = 0.5*stepSize;
 		}
 		oldObjFn = objFn;*/
+		cout << trans << endl << "*************" << endl;
 	
 	}
 	
@@ -149,7 +150,7 @@ int main(int argc, char *argv[]) {
 	Rfile.open(argv[3]);
 	Tfile.open(argv[4]);
 	
-	stringstream Rstream, Tstream, astream;
+	stringstream Rstream, Tstream;
 	for(int i=0; i<3; i++) {
 		for(int j=0; j<3; j++) {
 			Rstream << rotM(j, i) << endl;
