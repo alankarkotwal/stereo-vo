@@ -6,6 +6,7 @@
 
 #include <cstdlib>
 #include <fstream>
+#include <iostream.h>
 #include <opencv2/opencv.hpp>
 #include <pcl/point_cloud.h>
 #include <pcl/io/pcd_io.h>
